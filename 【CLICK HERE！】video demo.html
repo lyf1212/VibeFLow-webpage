@@ -1,0 +1,1106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VibeFlow</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif;
+            background: #f5f5f5;
+            color: #333;
+            line-height: 1.6;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        h1 {
+            font-size: 2em;
+            margin-bottom: 10px;
+            color: #333;
+        }
+
+        h2 {
+            font-size: 1.5em;
+            margin: 40px 0 20px 0;
+            color: #333;
+            border-bottom: 2px solid #666;
+            padding-bottom: 10px;
+        }
+
+        .cases-container {
+            display: grid;
+            gap: 30px;
+            position: relative;
+        }
+
+        .section-container {
+            margin-bottom: 60px;
+            position: relative;
+        }
+
+        .pagination-container {
+            position: relative;
+            margin-bottom: 20px;
+        }
+
+        .nav-button {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            background: #666;
+            color: white;
+            border: none;
+            width: 50px;
+            height: 50px;
+            cursor: pointer;
+            font-size: 24px;
+            z-index: 10;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.3s;
+        }
+
+        .nav-button:hover {
+            background: #444;
+        }
+
+        .nav-button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+
+        .nav-button.prev {
+            left: -30px;
+        }
+
+        .nav-button.next {
+            right: -30px;
+        }
+
+        .page-indicator {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 8px;
+            margin-top: 15px;
+        }
+
+        .page-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #666;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .page-dot.active {
+            width: 12px;
+            height: 12px;
+            background: #333;
+        }
+
+        .case-card-wrapper {
+            display: none;
+        }
+
+        .case-card-wrapper.active {
+            display: block;
+        }
+
+        .case-card {
+            background: white;
+            padding: 25px;
+            border: 1px solid #ddd;
+        }
+
+        .case-header {
+            margin-bottom: 20px;
+        }
+
+        .prompt {
+            padding: 12px;
+            background: #f9f9f9;
+            border-left: 3px solid #666;
+            font-size: 14px;
+            color: #555;
+        }
+
+        .videos-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .videos-grid.layout-3-2 {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr); /* 每行三列 */
+            gap: 18px;
+        }
+
+        /* 第一行的三个视频默认自动排列居中，无需改 */
+
+        /* 第二行两个视频靠右 */
+        .videos-grid.layout-3-2 > :nth-child(4) {
+            grid-column-start: 2; /* 第4个视频从第2列开始 */
+        }
+
+        .videos-grid.layout-3-2 > :nth-child(5) {
+            grid-column-start: 3; /* 第5个视频从第3列开始 */
+        }
+
+        /* 让视频更大：使用 aspect-ratio 保持纵横比，同时限制最大高度 */
+        .video-item video {
+            width: 100%;
+            height: auto;
+            aspect-ratio: auto;
+            max-height: 100%; /* 根据需要可调，增加会更大 */
+            background: #000;
+            display: block;
+        }
+
+        /* 当为 3+2 布局时，让标签行高和内边距略加大 */
+        .videos-grid.layout-3-2 .video-label {
+            padding: 10px;
+            font-size: 14px;
+        }
+
+        /* 小屏幕保持单列显示 */
+        @media (max-width: 768px) {
+            .videos-grid.layout-3-2 {
+                grid-template-columns: 1fr;
+            }
+            .video-item video {
+                max-height: none;
+            }
+        }
+
+        .video-item {
+            border: 1px solid #ddd;
+        }
+
+        .video-label {
+            padding: 8px;
+            background: #666;
+            color: white;
+            font-weight: 500;
+            text-align: center;
+            font-size: 13px;
+        }
+
+        .video-label.input {
+            background: #444;
+        }
+
+        .video-label.ours {
+            background: #222;
+        }
+
+        .video-label.anyportal {
+            background: #555;
+        }
+
+        .video-label.lumen {
+            background: #555;
+        }
+
+        .video-label.lightavideo {
+            background: #555;
+        }
+
+        video {
+            width: 100%;
+            display: block;
+            background: #000;
+        }
+
+        #resultsContainer video {
+            object-fit: contain;
+        }
+
+        .comparison-container {
+            position: relative;
+            width: 100%;
+            border: 1px solid #ddd;
+            overflow: hidden;
+            background: #000;
+        }
+
+        .comparison-video-wrapper {
+            position: relative;
+            width: 100%;
+            background: #000;
+            display: block;
+        }
+
+        .comparison-video {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: auto;
+            object-fit: contain;
+            display: block;
+            background: #000;
+        }
+
+        /* Use first video to set container height */
+        .comparison-video.left {
+            position: relative;
+            clip-path: inset(0 50% 0 0);
+            z-index: 1;
+        }
+
+        .comparison-video.right {
+            clip-path: inset(0 0 0 50%);
+            z-index: 2;
+        }
+
+        /* 拖拽分割器容器 */
+        .comparison-divider {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 40px;
+            height: 40px;
+            transform: translate(-50%, -50%);
+            cursor: ew-resize;
+            z-index: 10;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #fff;
+            border: 2px solid #666;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+            transition: background 0.3s, border-color 0.3s;
+            font-weight: bold; /* 加粗箭头 */
+            font-size: 20px;   /* 放大一点，更明显 */
+        }
+
+        /* 鼠标悬停时高亮 */
+        .comparison-divider:hover {
+            background: #f0f0f0;
+            border-color: #444;
+        }
+
+        /* 使用 ::after 添加加粗左右箭头符号 */
+        .comparison-divider::after {
+            content: '↔';  /* 加粗的左右箭头 */
+            pointer-events: none; /* 不影响拖拽事件 */
+            color: #666;
+            font-weight: bold;
+            font-size: 20px;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+            font-size: 14px;
+        }
+
+        .error {
+            background: #fee;
+            color: #c33;
+            padding: 15px;
+            margin: 20px 0;
+            border: 1px solid #fcc;
+        }
+
+        .no-results {
+            text-align: center;
+            padding: 60px 20px;
+            color: #666;
+            font-size: 14px;
+        }
+
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 1.5em;
+            }
+
+            .videos-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>VibeFlow: Versatile Video Chroma-Lux Editing through Self-Supervised Learning</h1>
+        </header>
+
+        <h3>Notes: </h3>
+        <h3>- Recommended in Edge or Chrome browsers.</h3>
+        <h3>- If the videos are not correctly loaded / autoplaying, please try to refresh the page.</h3>
+        <h3>- Please **switch pages** to navigate different videos.</h3>
+
+        <div id="resultContainer" class="section-container">
+            <h2>Results</h2>
+            <div class="pagination-container">
+                <button class="nav-button prev" id="resultPrevBtn">←</button>
+                <div id="resultsContainer" class="cases-container"></div>
+                <button class="nav-button next" id="resultNextBtn">→</button>
+            </div>
+            <div class="page-indicator" id="resultPageIndicator"></div>
+        </div>
+
+        <!-- <div id="comparisonContainer" class="section-container">
+            <h2>Comparison with other methods</h2>
+            <div class="pagination-container">
+                <button class="nav-button prev" id="comparisonPrevBtn">←</button>
+                <div id="casesContainer" class="cases-container"></div>
+                <button class="nav-button next" id="comparisonNextBtn">→</button>
+            </div>
+            <div class="page-indicator" id="comparisonPageIndicator"></div>
+        </div> -->
+
+        <div id="ablationContainer" class="section-container">
+            <h2>Comparison Methods</h2>
+            <div class="pagination-container">
+                <button class="nav-button prev" id="ablationPrevBtn">←</button>
+                <div id="ablationCasesContainer" class="cases-container"></div>
+                <button class="nav-button next" id="ablationNextBtn">→</button>
+            </div>
+            <div class="page-indicator" id="ablationPageIndicator"></div>
+        </div>
+    </div>
+
+    <script>
+        // Result data - video files in result subdirectories with prompts from CSV
+        const resultData = {
+            "relight": { 
+                "input": "man.mp4",     
+                "output": "man_ours.mp4",  
+                "prompt": "[Relight]: a man in a warm sunny room"
+            },
+            "boat":{
+                "input": "boat.mp4",      
+                "output": "boat_ours2.mp4",   
+                "prompt": "[Relight]: a boat sailing in gloden time"
+            },
+            "swan":{
+                "input": "blackswan.mp4",      
+                "output": "magic_swan_l_replace.mp4",   
+                "prompt": "[Recolor]: a magic-color swan"
+            },
+            "bear_color":{
+                "input": "bear_gray.mp4",      
+                "output": "blue_bear_l_replace.mp4",    
+                "prompt": "[Recolor]: a blue bear and purple leaves"
+            },
+            "daynight":{
+                "input": "rallye.mp4",      
+                "output": "ralley_night.mp4",    
+                "prompt": "[DayNight Translation]: A nighttime image"
+            },
+            "low1":{
+                "input": "lowlight.mp4",      
+                "output": "normallit.mp4",    
+                "prompt": "[Low-light Enhancement]: A daytime image"
+            },
+            "low2":{
+                "input": "216_low.mp4",      
+                "output": "216.mp4",    
+                "prompt": "[Low-light Enhancement]: A daytime image"
+            },
+            "object_color":{
+                "input": "man.mp4",      
+                "output": "man_colorful.mp4",    
+                "prompt": "[Object Color Editing]: A man with red coat, red and yellow shirt in front of a green wall"
+            },
+        };
+
+        // Result pagination state
+        let resultCurrentIndex = 0;
+        let resultCases = [];
+
+        // Render results
+        function renderResults(index = null) {
+            if (index === null) index = resultCurrentIndex;
+            resultCurrentIndex = index;
+            
+            const container = document.getElementById('resultsContainer');
+            resultCases = Object.entries(resultData);
+            
+            if (resultCases.length === 0) {
+                container.innerHTML = '';
+                return;
+            }
+
+            // Ensure index is within bounds
+            if (index < 0) index = 0;
+            if (index >= resultCases.length) index = resultCases.length - 1;
+            resultCurrentIndex = index;
+
+            // Render all cases but only show the current one
+            container.innerHTML = resultCases.map(([caseName, caseData], idx) => {
+                const videoPath = `result/${caseName}/`;
+                const inputVideo = caseData.input;
+                const outputVideo = caseData.output;
+                const prompt = caseData.prompt || '';
+                const isActive = idx === index;
+
+                return `
+                    <div class="case-card-wrapper ${isActive ? 'active' : ''}">
+                        <div class="case-card">
+                            ${prompt ? `
+                                <div class="case-header">
+                                    <div class="prompt">${prompt}</div>
+                                </div>
+                            ` : ''}
+                            <div class="videos-grid">
+                                <div class="video-item">
+                                    <div class="video-label input">Input</div>
+                                    <video controls autoplay loop muted preload="none" class="result-input-video" data-src="${videoPath}${inputVideo}">
+                                        Your browser does not support the video tag.
+                                    </video>
+                                </div>
+                                <div class="video-item">
+                                    <div class="video-label">Comparison (Drag left and right to compare)</div>
+                                    <div class="comparison-container" data-case-index="${idx}">
+                                        <div class="comparison-video-wrapper">
+                                            <video controls autoplay loop muted preload="none" class="comparison-video left result-comparison-input" data-src="${videoPath}${inputVideo}">
+                                                Your browser does not support the video tag.
+                                            </video>
+                                            <video controls autoplay loop muted preload="none" class="comparison-video right result-comparison-output" data-src="${videoPath}${outputVideo}">
+                                                Your browser does not support the video tag.
+                                            </video>
+                                            <div class="comparison-divider"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="video-item">
+                                    <div class="video-label ours">Output</div>
+                                    <video controls autoplay loop muted preload="none" class="result-output-video" data-src="${videoPath}${outputVideo}">
+                                        Your browser does not support the video tag.
+                                    </video>
+                                </div>
+                            </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            // Update navigation buttons
+            document.getElementById('resultPrevBtn').disabled = index === 0;
+            document.getElementById('resultNextBtn').disabled = index === resultCases.length - 1;
+            
+            // Update page indicator
+            const indicator = document.getElementById('resultPageIndicator');
+            indicator.innerHTML = resultCases.map((_, idx) => 
+                `<div class="page-dot ${idx === index ? 'active' : ''}" data-index="${idx}"></div>`
+            ).join('');
+            
+            // Add click handlers to dots
+            indicator.querySelectorAll('.page-dot').forEach(dot => {
+                dot.addEventListener('click', () => {
+                    const targetIndex = parseInt(dot.getAttribute('data-index'));
+                    renderResults(targetIndex);
+                });
+            });
+
+            // Initialize comparison sliders after rendering
+            initializeComparisonSliders();
+            lazyLoadVideos();
+        }
+
+        // Initialize comparison sliders
+        function initializeComparisonSliders() {
+            const containers = document.querySelectorAll('.comparison-container:not([data-initialized])');
+            containers.forEach(container => {
+                container.setAttribute('data-initialized', 'true');
+                const divider = container.querySelector('.comparison-divider');
+                const leftVideo = container.querySelector('.comparison-video.left');
+                const rightVideo = container.querySelector('.comparison-video.right');
+                
+                if (!divider || !leftVideo || !rightVideo) return;
+
+                let isDragging = false;
+
+                function updateSplitPosition(clientX) {
+                    const rect = container.getBoundingClientRect();
+                    const x = clientX - rect.left;
+                    const percentage = Math.max(0, Math.min(100, (x / rect.width) * 100));
+                    const rightPercentage = 100 - percentage;
+                    
+                    leftVideo.style.clipPath = `inset(0 ${rightPercentage}% 0 0)`;
+                    rightVideo.style.clipPath = `inset(0 0 0 ${percentage}%)`;
+                    divider.style.left = percentage + '%';
+                }
+
+                divider.addEventListener('mousedown', (e) => {
+                    isDragging = true;
+                    e.preventDefault();
+                });
+
+                const handleMouseMove = (e) => {
+                    if (!isDragging) return;
+                    const rect = container.getBoundingClientRect();
+                    if (e.clientX >= rect.left && e.clientX <= rect.right) {
+                        updateSplitPosition(e.clientX);
+                    }
+                };
+
+                const handleMouseUp = () => {
+                    isDragging = false;
+                };
+
+                document.addEventListener('mousemove', handleMouseMove);
+                document.addEventListener('mouseup', handleMouseUp);
+
+                const wrapper = container.querySelector('.comparison-video-wrapper');
+                container.addEventListener('click', (e) => {
+                    if (!isDragging && (e.target === container || e.target === wrapper)) {
+                        updateSplitPosition(e.clientX);
+                    }
+                });
+
+                // Sync video playback
+                const syncPlayback = (triggerVideo) => {
+                    [leftVideo, rightVideo].forEach(v => {
+                        if (v !== triggerVideo) {
+                            v.currentTime = triggerVideo.currentTime;
+                            if (!triggerVideo.paused) {
+                                v.play().catch(() => {});
+                            } else {
+                                v.pause();
+                            }
+                        }
+                    });
+                };
+
+                [leftVideo, rightVideo].forEach(video => {
+                    video.addEventListener('play', () => syncPlayback(video));
+                    video.addEventListener('pause', () => syncPlayback(video));
+                    video.addEventListener('seeked', () => {
+                        [leftVideo, rightVideo].forEach(v => {
+                            if (Math.abs(v.currentTime - video.currentTime) > 0.1) {
+                                v.currentTime = video.currentTime;
+                            }
+                        });
+                    });
+                });
+            });
+        }
+
+        // Result navigation handlers
+        document.addEventListener('DOMContentLoaded', () => {
+            document.getElementById('resultPrevBtn').addEventListener('click', () => {
+                if (resultCurrentIndex > 0) {
+                    renderResults(resultCurrentIndex - 1);
+                }
+            });
+
+            document.getElementById('resultNextBtn').addEventListener('click', () => {
+                if (resultCurrentIndex < resultCases.length - 1) {
+                    renderResults(resultCurrentIndex + 1);
+                }
+            });
+        });
+        // Embedded data from information.json
+        const allCases = {
+            "box_ic": {
+                "video": {
+                    "input": "box_ic.mp4",
+                    "Ours": "output_video.mp4",
+                    "Anyportal": "ANYPORTAL.mp4",
+                    "Lumen": "Lumen.mp4",
+                    "LightAVideo": "inpaint_box_ic_16frames.mp4"
+                },
+                "prompt_tar": {
+                    "en": "a black woman boxing outdoors in a park under bright warm sunlight, sunlight shining on her face.",
+                    "zh": "一位黑人女性在公园的明亮暖阳下进行拳击训练，阳光照在她的脸上，光照均匀。"
+                }
+            },
+            "cake_z": {
+                "video": {
+                    "input": "cake_z.mp4",
+                    "Ours": "output_video.mp4",
+                    "Anyportal": "ANYPORTAL.mp4",
+                    "Lumen": "Lumen.mp4",
+                    "LightAVideo": "inpaint_cake_z_low_16frames.mp4"
+                },
+                "prompt_tar": {
+                    "en": "A decorated cake on a small wooden table, placed on a lush grassy patch in a garden bathed in warm sunlight.",
+                    "zh": "一份装饰好的蛋糕放在小木桌上，置于花园的茂密草地上，沐浴在温暖阳光中。"
+                }
+            },
+            "cat_ic": {
+                "video": {
+                    "input": "cat_ic.mp4",
+                    "Ours": "output_video.mp4",
+                    "Anyportal": "ANYPORTAL.mp4",
+                    "Lumen": "Lumen.mp4",
+                    "LightAVideo": "inpaint_cat_ic_16frames.mp4"
+                },
+                "prompt_tar": {
+                    "en": "A cat standing in a broad living room on a wooden floor; sunlight from the window casts a warm shadow, the background is clear and bright.",
+                    "zh": "一只猫站在宽敞的客厅木地板上，窗外阳光投下温暖的影子，背景清晰明亮。"
+                }
+            },
+            "cat1_garden_z": {
+                "video": {
+                    "input": "cat1_z.mp4",
+                    "Ours": "output_video.mp4",
+                    "Anyportal": "ANYPORTAL.mp4",
+                    "Lumen": "Lumen.mp4",
+                    "LightAVideo": "inpaint_cat1_garden_z_low_16frames.mp4"
+                },
+                "prompt_tar": {
+                    "en": "A tabby cat lying leisurely on the lush grass of a garden, with scattered daisies around it.",
+                    "zh": "一只虎斑猫慵懒地躺在花园葱郁的草地上，周围散落着雏菊。"
+                }
+            },
+            "cat2_stonetrack": {
+                "video": {
+                    "input": "cat2.mp4",
+                    "Ours": "output_video.mp4",
+                    "Anyportal": "ANYPORTAL.mp4",
+                    "Lumen": "Lumen.mp4",
+                    "LightAVideo": "inpaint_cat2_16frames.mp4"
+                },
+                "prompt_tar": {
+                    "en": "A modern city crosswalk made of clean gray stone tiles under soft daylight; minimalist urban design.",
+                    "zh": "柔和日光下的现代城市斑马线，由干净的灰色石砖铺成；极简城市设计。"
+                }
+            },
+            "dress_ic": {
+                "video": {
+                    "input": "dress_ic.mp4",
+                    "Ours": "BLURoutput_video.mp4",
+                    "Anyportal": "ANYPORTAL.mp4",
+                    "Lumen": "Lumen.mp4",
+                    "LightAVideo": "inpaint_dress_ic_16frames.mp4"
+                },
+                "prompt_tar": {
+                    "en": "a woman holding a basket of flowers in front of a desert temple, wearing a dress; bright lights, cinematic, high detail.",
+                    "zh": "一位女子手提花篮站在沙漠神庙前，身穿连衣裙；光线明亮，电影质感，细节丰富。"
+                }
+            },
+            "man_2_ic": {
+                "video": {
+                    "input": "man_2_ic.mp4",
+                    "Ours": "output_video.mp4",
+                    "Anyportal": "ANYPORTAL.mp4",
+                    "Lumen": "Lumen.mp4",
+                    "LightAVideo": "inpaint_man_2_ic_16frames.mp4"
+                },
+                "prompt_tar": {
+                    "en": "a man near a campfire at night; the campfire illuminates his face brightly, with enhanced light and shadow effects.",
+                    "zh": "夜晚篝火旁的一名男子；篝火明亮地照亮他的脸部，光影效果增强。"
+                }
+            },
+            "man_ic": {
+                "video": {
+                    "input": "man_ic.mp4",
+                    "Ours": "output_video.mp4",
+                    "Anyportal": "ANYPORTAL.mp4",
+                    "Lumen": "lumen.mp4",
+                    "LightAVideo": "inpaint_man_ic_16frames.mp4"
+                },
+                "prompt_tar": {
+                    "en": "a man near a wide golden beach by the blue sea; golden shiny sand and a clear blue sky; bright sunlight shining on his face.",
+                    "zh": "一名男子站在蔚蓝海边的金色宽广沙滩旁；金灿灿的沙地与清澈的蓝粉橙天空；明亮阳光照在他的脸上。"
+                }
+            },
+            "man1_z": {
+                "video": {
+                    "input": "man1_z.mp4",
+                    "Ours": "output_video.mp4",
+                    "Anyportal": "ANYPORTAL.mp4",
+                    "Lumen": "Lumen.mp4",
+                    "LightAVideo": "inpaint_man1_z_low_16frames.mp4"
+                },
+                "prompt_tar": {
+                    "en": "A man smiling in a classroom, with rows of desks in the background.",
+                    "zh": "一名男子在教室里微笑，背景是整齐排列的课桌。"
+                }
+            },
+            "man5_z": {
+                "video": {
+                    "input": "man5_z.mp4",
+                    "Ours": "output_video.mp4",
+                    "Anyportal": "ANYPORTAL.mp4",
+                    "Lumen": "Lumen.mp4",
+                    "LightAVideo": "inpaint_man5_z_low_16frames.mp4"
+                },
+                "prompt_tar": {
+                    "en": "A man indoors in a warm‑toned café corner, with a vintage brass chandelier hanging in the background.",
+                    "zh": "一名男子在暖色调咖啡馆的角落里，背景悬挂着复古黄铜吊灯。"
+                }
+            },
+            "man7": {
+                "video": {
+                    "input": "man7_ic.mp4",
+                    "Ours": "output_video.mp4",
+                    "Anyportal": "ANYPORTAL.mp4",
+                    "Lumen": "Lumen.mp4",
+                    "LightAVideo": "inpaint_man7_ic_16frames.mp4"
+                },
+                "prompt_tar": {
+                    "en": "a man in a bright room; outside the small glass window are night blue rain and a city street; detailed face.",
+                    "zh": "一名男子在明亮的房间里；小玻璃窗外是夜色蓝雨与城市街道；面部细节清晰。"
+                }
+            },
+            "new2_field": {
+                "video": {
+                    "input": "new2.mp4",
+                    "Ours": "output_video.mp4",
+                    "Anyportal": "ANYPORTAL.mp4",
+                    "Lumen": "Lumen.mp4",
+                    "LightAVideo": "inpaint_new2_16frames.mp4"
+                },
+                "prompt_tar": {
+                    "en": "A woman with long brown hair wearing a beige coat and black turtleneck talking in a wide open field surrounded by tall golden grass; bright sunlight and clear sky create a serene cinematic countryside atmosphere.",
+                    "zh": "一位长棕发、穿米色大衣与黑色高领的女子在开阔的田野里说话，四周是高高的金色草丛；明亮阳光与晴朗天空营造宁静的电影式乡野氛围。"
+                }
+            },
+            "reb1_z": {
+                "video": {
+                    "input": "reb1_z.mp4",
+                    "Ours": "output_video.mp4",
+                    "Anyportal": "ANYPORTAL.mp4",
+                    "Lumen": "Lumen.mp4",
+                    "LightAVideo": "inpaint_reb1_z_low_16frames.mp4"
+                },
+                "prompt_tar": {
+                    "en": "A woman standing by a misty lake surrounded by forests in the morning.",
+                    "zh": "清晨，一位女子站在被森林环绕的薄雾湖畔。"
+                }
+            },
+            "woman2": {
+                "video": {
+                    "input": "woman2.mp4",
+                    "Ours": "output_video.mp4",
+                    "Anyportal": "ANYPORTAL.mp4",
+                    "Lumen": "Lumen.mp4",
+                    "LightAVideo": "inpaint_woman2_16frames.mp4"
+                },
+                "prompt_tar": {
+                    "en": "A young woman with curly blonde hair gently touching her head with both hands, eyes closed and calm, surrounded by a lush garden of blooming flowers and greenery; warm sunlight creates golden highlights; cinematic close‑up portrait, vivid outdoor colors.",
+                    "zh": "一位金卷发的年轻女子双手轻触头部，闭眼而宁静，周围是繁茂花园与盛开的花草；温暖阳光营造金色高光；电影式特写，户外色彩鲜明。"
+                }
+            },
+            "woman7_castle": {
+                "video": {
+                    "input": "woman7.mp4",
+                    "Ours": "output_video.mp4",
+                    "Anyportal": "ANYPORTAL.mp4",
+                    "Lumen": "Lumen.mp4",
+                    "LightAVideo": "inpaint_woman7_16frames.mp4"
+                },
+                "prompt_tar": {
+                    "en": "A woman with long brown hair wearing a light dress standing facing a stone castle, holding a red keyboard under her arm; soft afternoon light illuminates the scene; cinematic fantasy atmosphere.",
+                    "zh": "一位长棕发、身着轻薄连衣裙的女子面向石头城堡，臂下夹着红色键盘；柔和午后光洒满场景，电影般的奇幻氛围。"
+                }
+            },
+            "dancing2_wild": {
+                "video": {
+                    "input": "dancing2.mp4",
+                    "Ours": "output_video.mp4",
+                    "Anyportal": "ANYPORTAL.mp4",
+                    "Lumen": "Lumen.mp4",
+                    "LightAVideo": "inpaint_dancing2_16frames.mp4"
+                },
+                "prompt_tar": {
+                    "en": "A person wearing a yellow plaid shirt, black leather jacket, orange patterned headscarf, and hoop earrings is dancing confidently outdoors in a wide natural landscape surrounded by trees and grass. Warm sunlight filters through the leaves, soft daylight reflections on the jacket, cinematic outdoor lighting.",
+                    "zh": "一位穿着黄色格子衬衫、黑色皮夹克、橙色头巾和耳环的人在户外宽广的自然景观中自信地跳舞，周围是树木和草地。温暖阳光透过树叶，皮夹克的软光反射，电影般的户外照明。"
+                }
+            }
+        };
+        const ablationData = {
+            "man": {
+                "input": "man.mp4",
+                "anyv2v": "result_man_anyv2v.mp4",
+                "wan": "man_wan.mp4",
+                "Ours": "man_ours.mp4",
+            },
+        };
+
+        // Comparison pagination state
+        let comparisonCurrentIndex = 0;
+        let comparisonCases = [];
+
+        // Render all cases
+        function renderCases(index = null) {
+            if (index === null) index = comparisonCurrentIndex;
+            comparisonCurrentIndex = index;
+            
+            const container = document.getElementById('casesContainer');
+            comparisonCases = Object.entries(allCases);
+
+            if (comparisonCases.length === 0) {
+                container.innerHTML = '';
+                return;
+            }
+
+            // Ensure index is within bounds
+            if (index < 0) index = 0;
+            if (index >= comparisonCases.length) index = comparisonCases.length - 1;
+            comparisonCurrentIndex = index;
+
+            // Render all cases but only show the current one
+            container.innerHTML = comparisonCases.map(([caseName, caseData], idx) => {
+                const prompt = caseData.prompt_tar.en;
+                const videos = caseData.video;
+                const videoPath = `compare/${caseName}/`;
+                const isActive = idx === index;
+
+                // Build video items in order: Input (left), Lumen (2nd), Anyportal, LightAVideo, Ours (right)
+                const videoItems = [];
+
+                // Input (leftmost)
+                if (videos.input) {
+                    videoItems.push(`
+                        <div class="video-item">
+                            <div class="video-label input">Input</div>
+                            <video controls autoplay loop muted preload="none" data-src="${videoPath}${videos.input}">
+                                Your browser does not support the video tag.
+                            </video>
+                        </div>
+                    `);
+                }
+
+                // Lumen (2nd from left)
+                if (videos.Lumen) {
+                    videoItems.push(`
+                        <div class="video-item">
+                            <div class="video-label lumen">Lumen</div>
+                            <video controls autoplay loop muted preload="none" data-src="${videoPath}${videos.Lumen}">
+                                Your browser does not support the video tag.
+                            </video>
+                        </div>
+                    `);
+                }
+
+                // Anyportal (middle)
+                if (videos.Anyportal) {
+                    videoItems.push(`
+                        <div class="video-item">
+                            <div class="video-label anyportal">AnyPortal</div>
+                            <video controls autoplay loop muted preload="none" data-src="${videoPath}${videos.Anyportal}">
+                                Your browser does not support the video tag.
+                            </video>
+                        </div>
+                    `);
+                }
+
+                // LightAVideo (middle)
+                if (videos.LightAVideo) {
+                    videoItems.push(`
+                        <div class="video-item">
+                            <div class="video-label lightavideo">LightAVideo</div>
+                            <video controls autoplay loop muted preload="none" data-src="${videoPath}${videos.LightAVideo}">
+                                Your browser does not support the video tag.
+                            </video>
+                        </div>
+                    `);
+                }
+
+                // Ours (rightmost)
+                if (videos.Ours) {
+                    videoItems.push(`
+                        <div class="video-item">
+                            <div class="video-label ours">Ours</div>
+                            <video controls autoplay loop muted preload="none" data-src="${videoPath}${videos.Ours}">
+                                Your browser does not support the video tag.
+                            </video>
+                        </div>
+                    `);
+                }
+
+
+                const layoutClass = (videoItems.length === 5) ? 'layout-3-2' : '';
+                return `
+                    <div class="case-card-wrapper ${isActive ? 'active' : ''}">
+                        <div class="case-card">
+                            <div class="case-header">
+                                <div class="prompt">${prompt}</div>
+                            </div>
+                            <div class="videos-grid ${layoutClass}">
+                                ${videoItems.join('')}
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            // Update navigation buttons
+            document.getElementById('comparisonPrevBtn').disabled = index === 0;
+            document.getElementById('comparisonNextBtn').disabled = index === comparisonCases.length - 1;
+            
+            // Update page indicator
+            const indicator = document.getElementById('comparisonPageIndicator');
+            indicator.innerHTML = comparisonCases.map((_, idx) => 
+                `<div class="page-dot ${idx === index ? 'active' : ''}" data-index="${idx}"></div>`
+            ).join('');
+            
+            // Add click handlers to dots
+            indicator.querySelectorAll('.page-dot').forEach(dot => {
+                dot.addEventListener('click', () => {
+                    const targetIndex = parseInt(dot.getAttribute('data-index'));
+                    renderCases(targetIndex);
+                });
+            });
+            lazyLoadVideos();
+        }
+
+        // Comparison navigation handlers
+        // document.addEventListener('DOMContentLoaded', () => {
+        //     document.getElementById('comparisonPrevBtn').addEventListener('click', () => {
+        //         if (comparisonCurrentIndex > 0) {
+        //             renderCases(comparisonCurrentIndex - 1);
+        //         }
+        //     });
+
+        //     document.getElementById('comparisonNextBtn').addEventListener('click', () => {
+        //         if (comparisonCurrentIndex < comparisonCases.length - 1) {
+        //             renderCases(comparisonCurrentIndex + 1);
+        //         }
+        //     });
+
+            // document.getElementById('ablationPrevBtn').addEventListener('click', () => {
+            //     if (ablationCurrentIndex > 0) {
+            //         renderAblation(ablationCurrentIndex - 1);
+            //     }
+            // });
+
+            // document.getElementById('ablationNextBtn').addEventListener('click', () => {
+            //     if (ablationCurrentIndex < ablationCases.length - 1) {
+            //         renderAblation(ablationCurrentIndex + 1);
+            //     }
+            // });
+        // });
+        let ablationCurrentIndex = 0;
+        let ablationCases = [];
+
+        function renderAblation(index = null) {
+            if (index === null) index = ablationCurrentIndex;
+            ablationCurrentIndex = index;
+
+            const container = document.getElementById('ablationCasesContainer');
+            ablationCases = Object.entries(ablationData);
+
+            if (ablationCases.length === 0) {
+                container.innerHTML = '';
+                return;
+            }
+
+            if (index < 0) index = 0;
+            if (index >= ablationCases.length) index = ablationCases.length - 1;
+            ablationCurrentIndex = index;
+
+            container.innerHTML = ablationCases.map(([caseName, caseData], idx) => {
+                const videoPath = `compare/${caseName}/`;
+                const isActive = idx === index;
+
+                return `
+                    <div class="case-card-wrapper ${isActive ? 'active' : ''}">
+                        <div class="case-card">
+                            <div class="videos-grid layout-3-2">
+                                <div class="video-item">
+                                    <div class="video-label input">Input</div>
+                                    <video controls autoplay loop muted preload="none" data-src="${videoPath}${caseData.input}"></video>
+                                </div>
+                                <div class="video-item">
+                                    <div class="video-label">AnyV2V</div>
+                                    <video controls autoplay loop muted preload="none" data-src="${videoPath}${caseData.anyv2v}"></video>
+                                </div>
+                                <div class="video-item">
+                                    <div class="video-label">wan2.1-1.3B</div>
+                                    <video controls autoplay loop muted preload="none" data-src="${videoPath}${caseData.wan}"></video>
+                                </div>
+                                <div class="video-item">
+                                    <div class="video-label">Ours</div>
+                                    <video controls autoplay loop muted preload="none" data-src="${videoPath}${caseData.Ours}"></video>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            document.getElementById('ablationPrevBtn').disabled = index === 0;
+            document.getElementById('ablationNextBtn').disabled = index === ablationCases.length - 1;
+
+            const indicator = document.getElementById('ablationPageIndicator');
+            indicator.innerHTML = ablationCases.map((_, idx) =>
+                `<div class="page-dot ${idx === index ? 'active' : ''}" data-index="${idx}"></div>`
+            ).join('');
+
+            indicator.querySelectorAll('.page-dot').forEach(dot => {
+                dot.addEventListener('click', () => {
+                    renderAblation(parseInt(dot.getAttribute('data-index')));
+                });
+            });
+            lazyLoadVideos();
+        }
+        function lazyLoadVideos() {
+            const videos = document.querySelectorAll('video[data-src]');
+            
+            videos.forEach(video => {
+                if (video.dataset.lazyObserved) return;
+
+                const observer = new IntersectionObserver((entries, obs) => {
+                    entries.forEach(entry => {
+                        if (entry.isIntersecting) {
+                            const v = entry.target;
+                            v.src = v.dataset.src;
+                            v.load();
+                            v.removeAttribute('data-src');
+
+                            // 同步当前容器内的其他视频时间轴
+                            const container = v.closest('.videos-grid');
+                            const siblingVideos = container.querySelectorAll('video');
+                            v.addEventListener('loadeddata', () => {
+                                siblingVideos.forEach(sib => {
+                                    if (sib !== v) {
+                                        sib.currentTime = v.currentTime;
+                                    }
+                                });
+                            });
+
+                            obs.unobserve(v);
+                        }
+                    });
+                }, { rootMargin: '200px' });
+
+                observer.observe(video);
+                video.dataset.lazyObserved = true;
+            });
+        }
+
+        // 页面加载完成后初始化
+        document.addEventListener('DOMContentLoaded', () => {
+            lazyLoadVideos();
+        });
+
+        // Render results and cases on page load
+        renderResults();
+        // renderCases();
+        renderAblation();
+    </script>
+</body>
+</html>
