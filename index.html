@@ -38,6 +38,42 @@
         .authors strong {
             font-weight: bold;
         }
+        /* 作者超链接样式 */
+        .authors a {
+            color: #007bff; /* 学术经典的蓝色 */
+            text-decoration: none;
+            transition: color 0.2s ease-in-out, border-bottom 0.2s;
+            border-bottom: 1px dashed transparent;
+        }
+
+        .authors a:hover {
+            color: #0056b3;
+            border-bottom: 1px dashed #0056b3; /* 鼠标悬停时出现虚线下划线，显得很精致 */
+        }
+
+        /* Teaser 区域样式 */
+        .teaser-container {
+            max-width: 1000px; /* 通常比正文稍宽一点点，显得大气 */
+            margin: 0 auto 40px auto;
+            text-align: center;
+        }
+
+        .teaser-container img, 
+        .teaser-container video {
+            width: 100%;
+            height: auto;
+            border-radius: 8px;
+            box-shadow: 0 6px 16px rgba(0,0,0,0.08); /* 淡淡的高级阴影 */
+            margin-bottom: 15px;
+        }
+
+        .teaser-caption {
+            font-size: 1.05em;
+            color: #555;
+            text-align: justify;
+            line-height: 1.6;
+            padding: 0 20px;
+        }
 
         .affiliations {
             font-size: 1.1em;
@@ -406,11 +442,11 @@
         <header>
             <h1>VibeFlow: Versatile Video Chroma-Lux Editing through Self-Supervised Learning</h1>
             <div class="authors">
-                <strong>Yifan Li</strong><sup>1</sup> , 
-                <strong>Pei Cheng</strong><sup>2</sup> , 
-                <strong>Bin Fu</strong><sup>2</sup> , 
-                <strong>Shuai Yang</strong><sup>1*</sup> , 
-                <strong>Jiaying Liu</strong><sup>1</sup>
+                <strong><a href="https://lyf1212.github.io" target="_blank">Yifan Li</a></strong><sup>1</sup> , 
+                <strong><a href="#" target="_blank">Pei Cheng</a></strong><sup>2</sup> , 
+                <strong><a href="#" target="_blank">Bin Fu</a></strong><sup>2</sup> , 
+                <strong><a href="https://williamyang1991.github.io/" target="_blank">Shuai Yang</a></strong><sup>1*</sup> , 
+                <strong><a href="http://www.wict.pku.edu.cn/struct/people/liujiaying.html" target="_blank">Jiaying Liu</a></strong><sup>1</sup>
             </div>
             
             <div class="affiliations">
@@ -422,6 +458,14 @@
                 {williamyang, liujiaying}@pku.edu.cn
             </div>
         </header>
+
+        <div class="teaser-container">
+            <img src="assets/teaser.jpg" alt="VibeFlow Teaser">
+            
+            <div class="teaser-caption">
+                <strong>Figure 1:</strong> VibeFlow achieves versatile video color and illumination editing while strictly preserve structural fidelity, enjoying rich applications, including video relighting, recoloring, day-night translation, low-light enhancement, and object-specific color editing.
+            </div>
+        </div>
 
         <div class="abstract-container">
             <div class="tldr-box">
